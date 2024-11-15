@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import math
 import matplotlib.pyplot as plt
-from sklearn import datasets
+from sklearn.preprocessing import StandardScaler
 
 
 # Import data and sort it
@@ -14,24 +14,18 @@ def import_file():
         patients = file.read().splitlines()
 
     # Remove the first 24 lines
-    for i in range(0, 24):
-        patients.pop(0)
-
-    patient_attr = []
+    patients = patients[24:]
 
     # Split all 19 attributes by ","
-    for i, patent in enumerate(patients):
-        patient_attr.append(patent.split(','))
+    patient_attr = [patient.split(',') for patient in patients]
 
     # Take the first 18 attributes as training data
-    training_data = [attribute[0:18] for attribute in patient_attr]
-    training_data = np.array(training_data, dtype=float)
+    patient_data = np.array([attribute[0:18] for attribute in patient_attr], dtype=float)
 
     # Take the last attribute as training result
-    training_result = [[attribute[-1] for attribute in patient_attr]][0]
-    training_result = np.array(training_result, dtype=float)
+    patient_result = np.array([attribute[-1] for attribute in patient_attr], dtype=float)
 
-    return training_data, training_result
+    return patient_data, patient_result
 #---------------------------------------------------------------------------------------#
 # Sigmoid function
 def sigmoid(x):
@@ -41,7 +35,7 @@ def sigmoid_derivative(x):
     return x * (1 - x)
 
 class NeuralNetwork:
-    def __init__(self, input_size, hidden_size, output_size, learning_rate=0.1):
+    def __init__(self, input_size, hidden_size, output_size, learning_rate):
         # Initialize network structure
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -85,36 +79,98 @@ class NeuralNetwork:
         self.bias_hidden += np.sum(d_hidden, axis=0, keepdims=True) * self.learning_rate
 
     def train(self, training_data, training_result, epochs):
+        training_losses = []
+
         for epoch in range(epochs):
             self.feedforward(training_data)
             self.backpropagate(training_data, training_result)
+
+            # Calculate the training loss
+            loss = np.mean(np.square(training_result - self.output))
+            training_losses.append(loss)
+
             if epoch % 100 == 0:
-                loss = np.mean(np.square(training_result - self.output))
                 print(f"Epoch {epoch}, Loss: {loss:.4f}")
+
+        return training_losses
+
+    def validate(self, validation_set, validation_result):
+        # Feedforward to get predictions
+        prediction = self.feedforward(validation_set)
+        predicted_classes = np.argmax(prediction, axis=1)
+        actual_classes = np.argmax(validation_result, axis=1)
+
+        # Calculate accuracy
+        correct_predictions = np.sum(predicted_classes == actual_classes)
+        accuracy = correct_predictions / len(validation_result)
+        print(f"Validation Accuracy: {accuracy:.4f}")
+
+    def plot_progress(self, training_losses):
+        epochs = range(len(training_losses))
+
+        # Plot training loss
+        plt.figure(figsize=(12, 6))
+
+        plt.subplot(1, 2, 1)
+        plt.plot(epochs, training_losses, label='Training Loss')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.title('Training Loss over Epochs')
+
+        plt.tight_layout()
+        plt.show()
 
 #---------------------------------------------------------------------------------------#
 
-training_data, training_result = import_file()
+# Load data
+patient_data, patient_result = import_file()
 
-training_result_one_hot = np.zeros((training_result.size, 2))
-training_result_one_hot[np.arange(training_result.size), training_result.astype(int)] = 1
+patient_result_one_hot = np.zeros((patient_result.size, 2))
+patient_result_one_hot[np.arange(patient_result.size), patient_result.astype(int)] = 1
 
+# Define network structure
 input_size = 18
 hidden_size = 2
 output_size = 2
+learning_rate = 0.1
+epochs = 500
 
-training_data_set = training_data[0:863]
-training_result_set = training_result_one_hot[0:863]
-validation_set = training_data[864:978]
-validation_result_set = training_result_one_hot[864:978]
-test_set = training_data[979:1151]
-test_result_set = training_result_one_hot[979:1151]
+# Split the data into training, validation and testing
+split_idx1 = int(0.75 * len(patient_data))
+split_idx2 = int(0.875 * len(patient_data))
 
-nn = NeuralNetwork(input_size, hidden_size, output_size, learning_rate=0.1)
+training_data_set = patient_data[:split_idx1]
+training_result_set = patient_result_one_hot[:split_idx1]
 
-nn.train(training_data_set, training_result_set, epochs=864)
+validation_data_set = patient_data[split_idx1:split_idx2]
+validation_result_set = patient_result_one_hot[split_idx1:split_idx2]
 
-test_input = test_set[0]
-print("Test output:", nn.feedforward(test_input))
+test_data_set = patient_data[split_idx2:]
+test_result_set = patient_result_one_hot[split_idx2:]
+
+
+# Normalize the data
+scaler = StandardScaler()
+training_data_set = scaler.fit_transform((training_data_set))
+
+validation_set = scaler.transform((validation_data_set))
+test_data_set = scaler.transform((test_data_set))
+
+
+# Initialize and train the neural network
+nn = NeuralNetwork(input_size, hidden_size, output_size, learning_rate)
+training_losses = nn.train(training_data_set, training_result_set, epochs)
+
+# Validate the model
+nn.validate(validation_data_set, validation_result_set)
+
+# Plot the training and validation progress
+nn.plot_progress(training_losses)
+
+
+# Test the model
+test_input1 = test_data_set[0]
+print("Test output:", nn.feedforward(test_input1))
 print("Real output:", test_result_set[0])
+
 #---------------------------------------------------------------------------------------#
