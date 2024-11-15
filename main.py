@@ -19,8 +19,8 @@ def import_file():
     # Split all 19 attributes by ","
     patient_attr = [patient.split(',') for patient in patients]
 
-    # Take the first 18 attributes as training data
-    patient_data = np.array([attribute[0:18] for attribute in patient_attr], dtype=float)
+    # Take the first 19 attributes as training data
+    patient_data = np.array([attribute[0:19] for attribute in patient_attr], dtype=float)
 
     # Take the last attribute as training result
     patient_result = np.array([attribute[-1] for attribute in patient_attr], dtype=float)
@@ -129,7 +129,7 @@ patient_result_one_hot = np.zeros((patient_result.size, 2))
 patient_result_one_hot[np.arange(patient_result.size), patient_result.astype(int)] = 1
 
 # Define network structure
-input_size = 18
+input_size = 19
 hidden_size = 2
 output_size = 2
 learning_rate = 0.1
