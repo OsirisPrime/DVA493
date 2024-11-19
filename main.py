@@ -1,10 +1,6 @@
-import random
 import numpy as np
-import pandas as pd
-import math
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
-
 
 # Import data and sort it
 def import_file():
@@ -120,6 +116,23 @@ class NeuralNetwork:
         plt.tight_layout()
         plt.show()
 
+    def testing(self, test_data, test_result):
+        accuracy = []
+        for sample in range(len(test_data)):
+
+            test = np.round(1)
+            if test == test_result[sample]:
+                accuracy.append(1)
+            else:
+                accuracy.append(0)
+
+        numAccurate = 0
+        for i in range(len(accuracy)):
+            if accuracy[i] == 1:
+                numAccurate += 1
+
+        print('Accuracy:', numAccurate / len(accuracy))
+
 #---------------------------------------------------------------------------------------#
 
 # Load data
@@ -151,10 +164,9 @@ test_result_set = patient_result_one_hot[split_idx2:]
 
 # Normalize the data
 scaler = StandardScaler()
-training_data_set = scaler.fit_transform((training_data_set))
-
-validation_set = scaler.transform((validation_data_set))
-test_data_set = scaler.transform((test_data_set))
+training_data_set = scaler.fit_transform(training_data_set)
+validation_set = scaler.transform(validation_data_set)
+test_data_set = scaler.transform(test_data_set)
 
 
 # Initialize and train the neural network
@@ -167,10 +179,6 @@ nn.validate(validation_data_set, validation_result_set)
 # Plot the training and validation progress
 nn.plot_progress(training_losses)
 
-
-# Test the model
-test_input1 = test_data_set[0]
-print("Test output:", nn.feedforward(test_input1))
-print("Real output:", test_result_set[0])
+nn.testing(test_data_set, test_result_set)
 
 #---------------------------------------------------------------------------------------#
