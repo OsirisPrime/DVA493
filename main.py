@@ -4,7 +4,6 @@ from sklearn.preprocessing import StandardScaler
 
 # Import data and sort it
 def import_file():
-
     # Open and read txt file
     with open('Diabetic.txt', "r") as file:
         patients = file.read().splitlines()
@@ -22,13 +21,8 @@ def import_file():
     patient_result = np.array([attribute[-1] for attribute in patient_attr], dtype=float)
 
     return patient_data, patient_result
-#---------------------------------------------------------------------------------------#
-# Sigmoid function
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
 
-def sigmoid_derivative(x):
-    return x * (1 - x)
+#---------------------------------------------------------------------------------------#
 
 class NeuralNetwork:
     def __init__(self, input_size, hidden_size, output_size, learning_rate):
@@ -40,145 +34,168 @@ class NeuralNetwork:
 
         # Initialize weights and biases
         self.weights_input_hidden = np.random.randn(self.input_size, self.hidden_size)
-        self.bias_hidden = np.random.randn(1, self.hidden_size)
         self.weights_hidden_output = np.random.randn(self.hidden_size, self.output_size)
-        self.bias_output = np.random.randn(1, self.output_size)
+        self.bias_hidden = np.zeros((1, self.hidden_size))
+        self.bias_output = np.zeros((1, self.output_size))
 
-    def feedforward(self, training_data):
-        # Forward pass through the network layers
-        self.input = training_data
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
 
-        # Hidden layer
-        self.hidden_input = np.dot(training_data, self.weights_input_hidden) + self.bias_hidden
-        self.hidden_output = sigmoid(self.hidden_input)
+    def sigmoid_derivative(self, x):
+        return x * (1 - x)
 
-        # Output layer
-        self.output_input = np.dot(self.hidden_output, self.weights_hidden_output) + self.bias_output
-        self.output = sigmoid(self.output_input)
+    # Calculate the error term of the output layer
+    def error_term_output_layer(self, output, target):
+        return output * (1 - output) * (target - output)
 
-        return self.output
+    # Calculate the error term of the hidden layer
+    def error_term_hidden_layer(self, output, errorTerms, weights):
+        sum = 0
+        for i in range(len(weights)):
+            sum += errorTerms[i] * weights[i]
 
-    def backpropagate(self, training_data, training_result):
-        # Calculate the error in output
-        error_output = training_result - self.output
-        d_output = error_output * sigmoid_derivative(self.output)
+        return (1 - output) * output * sum
 
-        # Backpropagate the error to the hidden layer
-        error_hidden = d_output.dot(self.weights_hidden_output.T)
-        d_hidden = error_hidden * sigmoid_derivative(self.hidden_output)
+    # Feed the patient data (inputs) into the model
+    def feedforward(self, data):
+        # Input to hidden layer
+        self.hidden_activation = np.dot(data, self.weights_input_hidden) + self.bias_hidden
+        self.hidden_output = self.sigmoid(self.hidden_activation)
 
-        # Update weights and biases
-        self.weights_hidden_output += self.hidden_output.T.dot(d_output) * self.learning_rate
-        self.bias_output += np.sum(d_output, axis=0, keepdims=True) * self.learning_rate
+        # Hidden to output layer
+        self.output_activation = np.dot(self.hidden_output, self.weights_hidden_output) + self.bias_output
+        self.predicted_output = self.sigmoid(self.output_activation)
 
-        self.weights_input_hidden += training_data.T.dot(d_hidden) * self.learning_rate
-        self.bias_hidden += np.sum(d_hidden, axis=0, keepdims=True) * self.learning_rate
+        return self.predicted_output
 
-    def train(self, training_data, training_result, epochs):
-        training_losses = []
+    # Update the weight and biases
+    def backward(self, data, target):
+        # Compute the output layer error term
+        output_error_term = self.error_term_output_layer(self.predicted_output, target)
 
+        hidden_error_terms = []
+        for i in range(self.hidden_size):
+            hidden_error = self.error_term_hidden_layer(
+                self.hidden_output[0, i],
+                output_error_term[0],
+                self.weights_hidden_output[i]
+            )
+            hidden_error_terms.append(hidden_error)
+
+        # Reshape the array
+        hidden_error_terms = np.array(hidden_error_terms).reshape(1, -1)
+
+        # Update output weights and biases
+        self.weights_hidden_output += self.learning_rate * np.dot(self.hidden_output.T, output_error_term)
+        self.bias_output += self.learning_rate * output_error_term
+
+        # Update hidden weights and biases
+        self.weights_input_hidden += self.learning_rate * np.dot(data.T, hidden_error_terms)
+        self.bias_hidden += self.learning_rate * hidden_error_terms
+
+    # Train the model
+    def train(self, data, target, validation_set, validation_result, epochs):
+        # The loss
+        self.training_loss = []
+        self.validation_loss = []
+
+        # Train the model
         for epoch in range(epochs):
-            self.feedforward(training_data)
-            self.backpropagate(training_data, training_result)
+            total_loss = 0
+            for i in range(len(data)):
+                # Get a single patient's data and result
+                patient_data = data[i].reshape(1, -1)
+                patient_result = target[i].reshape(1, -1)
 
-            # Calculate the training loss
-            loss = np.mean(np.square(training_result - self.output))
-            training_losses.append(loss)
+                # Feedforward the patient data
+                self.feedforward(patient_data)
 
-            if epoch % 100 == 0:
-                print(f"Epoch {epoch}, Loss: {loss:.4f}")
+                # Compute the loss
+                loss = np.mean(np.square(patient_result - self.predicted_output))
+                total_loss += loss
 
-        return training_losses
+                # Backward to update the weights and biases
+                self.backward(patient_data, patient_result)
 
+                # Validate the model after training on each patient
+                self.validate(validation_set, validation_result)
+
+            self.training_loss.append(total_loss / len(data))
+
+            # Print the average loss for each epoch
+            if epoch % 100 == 0 or epoch == epochs - 1:
+                print(f"Epoch {epoch}, Average Loss: {total_loss / len(data):.4f}")
+
+        return self.training_loss, self.validation_loss
+
+    # Calculate the validation
     def validate(self, validation_set, validation_result):
         # Feedforward to get predictions
-        prediction = self.feedforward(validation_set)
-        predicted_classes = np.argmax(prediction, axis=1)
-        actual_classes = np.argmax(validation_result, axis=1)
+        self.feedforward(validation_set)
 
-        # Calculate accuracy
-        correct_predictions = np.sum(predicted_classes == actual_classes)
-        accuracy = correct_predictions / len(validation_result)
-        print(f"Validation Accuracy: {accuracy:.4f}")
+        # Compute the loss
+        loss = np.mean(np.square(validation_result - self.predicted_output))
 
-    def plot_progress(self, training_losses):
-        epochs = range(len(training_losses))
+        self.validation_loss.append(loss / len(validation_set))
 
-        # Plot training loss
-        plt.figure(figsize=(12, 6))
-
-        plt.subplot(1, 2, 1)
-        plt.plot(epochs, training_losses, label='Training Loss')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.title('Training Loss over Epochs')
-
-        plt.tight_layout()
-        plt.show()
-
+    # Calculate the finished model accuracy
     def testing(self, test_data, test_result):
-        accuracy = []
-        for sample in range(len(test_data)):
+        # Feedforward to get predictions
+        predictions = self.feedforward(test_data)
 
-            test = np.round(1)
-            if test == test_result[sample]:
-                accuracy.append(1)
-            else:
-                accuracy.append(0)
+        # Round the predictions to 0 or 1
+        predicted_classes = np.round(predictions).astype(int)
+        actual_classes = test_result.astype(int)
 
-        numAccurate = 0
-        for i in range(len(accuracy)):
-            if accuracy[i] == 1:
-                numAccurate += 1
-
-        print('Accuracy:', numAccurate / len(accuracy))
+        # Calculate the accuracy
+        correct_predictions = np.sum(predicted_classes == actual_classes)
+        accuracy = correct_predictions / len(test_result)
+        print(f"Validation Accuracy: {accuracy:.4f}")
 
 #---------------------------------------------------------------------------------------#
 
 # Load data
 patient_data, patient_result = import_file()
 
-patient_result_one_hot = np.zeros((patient_result.size, 2))
-patient_result_one_hot[np.arange(patient_result.size), patient_result.astype(int)] = 1
-
 # Define network structure
 input_size = 19
-hidden_size = 2
-output_size = 2
+hidden_size = 10
+output_size = 1
 learning_rate = 0.1
 epochs = 500
 
-# Split the data into training, validation and testing
+# Normalize patient data
+scaler = StandardScaler()
+patient_data = scaler.fit_transform(patient_data)
+
+# Split the data into training, validation and testing set
 split_idx1 = int(0.75 * len(patient_data))
 split_idx2 = int(0.875 * len(patient_data))
 
 training_data_set = patient_data[:split_idx1]
-training_result_set = patient_result_one_hot[:split_idx1]
-
+training_result_set = patient_result[:split_idx1]
 validation_data_set = patient_data[split_idx1:split_idx2]
-validation_result_set = patient_result_one_hot[split_idx1:split_idx2]
-
+validation_result_set = patient_result[split_idx1:split_idx2]
 test_data_set = patient_data[split_idx2:]
-test_result_set = patient_result_one_hot[split_idx2:]
+test_result_set = patient_result[split_idx2:]
 
-
-# Normalize the data
-scaler = StandardScaler()
-training_data_set = scaler.fit_transform(training_data_set)
-validation_set = scaler.transform(validation_data_set)
-test_data_set = scaler.transform(test_data_set)
-
-
-# Initialize and train the neural network
+# Initialize the model
 nn = NeuralNetwork(input_size, hidden_size, output_size, learning_rate)
-training_losses = nn.train(training_data_set, training_result_set, epochs)
 
-# Validate the model
-nn.validate(validation_data_set, validation_result_set)
+# Train the model
+training_loss, validation_loss = nn.train(training_data_set, training_result_set, validation_data_set, validation_result_set, epochs)
 
-# Plot the training and validation progress
-nn.plot_progress(training_losses)
-
+# Test the finished model
 nn.testing(test_data_set, test_result_set)
 
-#---------------------------------------------------------------------------------------#
+'''
+# Plot training loss
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.plot(len(training_loss), training_loss, label='Training Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Training Loss over Epochs')
+plt.tight_layout()
+plt.show()
+'''
