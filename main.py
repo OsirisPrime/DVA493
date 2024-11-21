@@ -50,7 +50,9 @@ class NeuralNetwork:
 
     # Calculate the error term of the hidden layer
     def error_term_hidden_layer(self, output, errorTerms, weights):
-        weighted_sum = np.dot(errorTerms, weights)
+        weighted_sum = 0
+        for i in range(len(weights)):
+            weighted_sum += errorTerms[i] * weights[i]
         return (1 - output) * output * weighted_sum
 
     # Feed the patient data (inputs) into the model
@@ -117,24 +119,16 @@ class NeuralNetwork:
             # Save average training loss after each epoch
             self.training_loss.append(total_loss / len(data))
 
-            # Validate the model after training on each patient
-            self.validate(validation_set, validation_result)
+            # Validate the model after every epoch
+            validation_predictions = self.feedforward(validation_set)
+            validation_loss = np.mean(np.square(validation_result - validation_predictions))
+            self.validation_loss.append(validation_loss)
 
             # Print the average loss for each epoch
             if epoch % 100 == 0 or epoch == epochs - 1:
-                print(f"Epoch {epoch}, Average Loss: {total_loss / len(data):.4f}")
+                print(f"Epoch {epoch}, Average Training Loss: {total_loss / len(data):.4f}, Total Validation Loss: {validation_loss:.4f}")
 
         return self.training_loss, self.validation_loss
-
-    # Calculate the validation
-    def validate(self, validation_set, validation_result):
-        # Feedforward to get predictions
-        self.feedforward(validation_set)
-
-        # Compute the loss
-        loss = np.mean(np.square(validation_result - self.predicted_output))
-
-        self.validation_loss.append(loss)
 
     # Calculate the finished model accuracy
     def testing(self, test_data, test_result):
