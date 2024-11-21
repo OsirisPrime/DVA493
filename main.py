@@ -122,6 +122,7 @@ class NeuralNetwork:
             # Validate the model after every epoch
             validation_predictions = self.feedforward(validation_set)
             validation_loss = np.mean(np.square(validation_result - validation_predictions))
+            validation_loss = 0.5 - validation_loss
             self.validation_loss.append(validation_loss)
 
             # Print the average loss for each epoch
