@@ -50,11 +50,8 @@ class NeuralNetwork:
 
     # Calculate the error term of the hidden layer
     def error_term_hidden_layer(self, output, errorTerms, weights):
-        sum = 0
-        for i in range(len(weights)):
-            sum += errorTerms[i] * weights[i]
-
-        return (1 - output) * output * sum
+        weighted_sum = np.dot(errorTerms, weights)
+        return (1 - output) * output * weighted_sum
 
     # Feed the patient data (inputs) into the model
     def feedforward(self, data):
@@ -117,10 +114,11 @@ class NeuralNetwork:
                 # Backward to update the weights and biases
                 self.backward(patient_data, patient_result)
 
-                # Validate the model after training on each patient
-                self.validate(validation_set, validation_result)
-
+            # Save average training loss after each epoch
             self.training_loss.append(total_loss / len(data))
+
+            # Validate the model after training on each patient
+            self.validate(validation_set, validation_result)
 
             # Print the average loss for each epoch
             if epoch % 100 == 0 or epoch == epochs - 1:
@@ -136,7 +134,7 @@ class NeuralNetwork:
         # Compute the loss
         loss = np.mean(np.square(validation_result - self.predicted_output))
 
-        self.validation_loss.append(loss / len(validation_set))
+        self.validation_loss.append(loss)
 
     # Calculate the finished model accuracy
     def testing(self, test_data, test_result):
@@ -188,14 +186,14 @@ training_loss, validation_loss = nn.train(training_data_set, training_result_set
 # Test the finished model
 nn.testing(test_data_set, test_result_set)
 
-'''
-# Plot training loss
-plt.figure(figsize=(12, 6))
-plt.subplot(1, 2, 1)
-plt.plot(len(training_loss), training_loss, label='Training Loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.title('Training Loss over Epochs')
+# Plot the training and validation loss
+plt.figure(figsize=(10, 6))
+plt.plot(training_loss, label='Training Loss', color='red')
+plt.plot(validation_loss, label='Validation Loss', color='blue', linestyle='--')
+plt.title("Training and Validation Loss Over Epochs", fontsize=14)
+plt.xlabel("Epochs", fontsize=12)
+plt.ylabel("Loss", fontsize=12)
+plt.legend()
+plt.grid(alpha=0.3)
 plt.tight_layout()
 plt.show()
-'''
