@@ -38,7 +38,7 @@ def create_distance_matrix(locations):
     return matrix
 
 # Fitness function
-def fitness(route, distance_matrix, max_distance):
+def fitness(route, distance_matrix):
     total_distance = sum(distance_matrix[route[i-1]][route[i]] for i in range(len(route)))
     total_distance += distance_matrix[route[-1]][route[0]]  # Return to start
     return total_distance
@@ -53,10 +53,11 @@ def initialize_population(size, num_locations):
         population.append(route)
     return population
 
-# Select parents for crossover
-def select_parents(population, fitnesses):
-    selected = random.choices(population, weights=fitnesses, k=2)
-    return selected
+# Tournament selection for selecting parents
+def tournament_selection(population, fitnesses, tournament_size):
+    tournament = random.sample(list(zip(population, fitnesses)), tournament_size)
+    tournament_winner = min(tournament, key=lambda x: x[1])  # Select based on fitness (lower is better)
+    return tournament_winner[0]
 
 # Perform crossover between two parents
 def crossover(parent1, parent2):
@@ -70,38 +71,54 @@ def crossover(parent1, parent2):
     return child
 
 # Mutate a route
-def mutate(route, mutation_rate=0.1):
+def mutate(route, mutation_rate):
     if random.random() < mutation_rate:
         i, j = random.sample(range(1, len(route)), 2)  # Avoid mutating start location
         route[i], route[j] = route[j], route[i]
 
-# Genetic algorithm
-def genetic_algorithm(locations, max_generations, population_size):
+# Genetic algorithm with termination based on distance threshold
+def genetic_algorithm(locations, distance_threshold, population_size, elitism_rate, tournament_size, max_generations, mutation_rate):
     distance_matrix = create_distance_matrix(locations)
     num_locations = len(locations)
     population = initialize_population(population_size, num_locations)
 
     best_route = None
     best_distance = float('inf')
+    elitism_count = int(elitism_rate * population_size)
+    generation = 0
 
-    for generation in range(max_generations):
-        fitnesses = [1 / fitness(route, distance_matrix, max_distance=8000) for route in population]
-        new_population = []
+    while best_distance > distance_threshold and generation < max_generations:
+        # Calculate fitness values
+        fitness_values = [fitness(route, distance_matrix) for route in population]
+        fitnesses = [1 / f for f in fitness_values]  # Inverse, since lower distance is better
 
-        for _ in range(population_size // 2):
-            parent1, parent2 = select_parents(population, fitnesses)
+        # Sort population by fitness (ascending order of distance)
+        sorted_population = [route for _, route in sorted(zip(fitness_values, population))]
+
+        # Elitism: Carry over the best individuals to the next generation
+        new_population = sorted_population[:elitism_count]
+
+        # Generate the rest of the population
+        while len(new_population) < population_size:
+            parent1 = tournament_selection(population, fitness_values, tournament_size)
+            parent2 = tournament_selection(population, fitness_values, tournament_size)
             child1 = crossover(parent1, parent2)
             child2 = crossover(parent2, parent1)
-            mutate(child1)
-            mutate(child2)
+            mutate(child1, mutation_rate)
+            mutate(child2, mutation_rate)
             new_population.extend([child1, child2])
 
-        population = new_population
+        # Trim excess individuals if the population exceeds the size
+        population = new_population[:population_size]
+
+        # Update the best solution found so far
         for route in population:
-            dist = fitness(route, distance_matrix, max_distance=8000)
+            dist = fitness(route, distance_matrix)
             if dist < best_distance:
                 best_distance = dist
                 best_route = route
+
+        generation += 1
 
     return best_route, best_distance, distance_matrix
 
@@ -128,23 +145,30 @@ def compute_total_distance(route, distance_matrix):
     total_distance += distance_matrix[route[-1]][route[0]]  # Return to start
     return total_distance
 
-# Main execution
-if __name__ == "__main__":
-    # Import locations
-    locations = import_file()
+#----------------------------------------------------------------------------------------------------#
 
-    # Model parameters
-    max_generations = 1000
-    population_size = 200
+# Import locations
+locations = import_file()
+print(f"All locations: {locations}")
 
-    # Train the model to find the best route
-    best_route, best_distance, distance_matrix = genetic_algorithm(locations, max_generations, population_size)
+# Model parameters
+distance_threshold = 8000
+population_size = 500
+elitism_rate = 0.4
+mutation_rate = 0.2
+tournament_size = 8
+max_generations = 1000  # Fallback to avoid infinite loop
 
-    # Compute and print the total distance
-    total_distance = compute_total_distance(best_route, distance_matrix)
-    print(f"Best route: {best_route}")
-    print(f"Best distance: {best_distance}")
-    print(f"Total distance of the route: {total_distance}")
+# Train the model to find the best route
+best_route, best_distance, distance_matrix = genetic_algorithm(
+    locations, distance_threshold, population_size, elitism_rate, tournament_size, max_generations, mutation_rate
+)
 
-    # Visualize the best route
-    plot_route(locations, best_route)
+# Compute and print the total distance
+total_distance = compute_total_distance(best_route, distance_matrix)
+print(f"Best route: {best_route}")
+print(f"Best distance: {best_distance}")
+print(f"Total distance of the route: {total_distance}")
+
+# Visualize the best route
+plot_route(locations, best_route)
