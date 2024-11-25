@@ -76,6 +76,7 @@ def mutate(route, mutation_rate):
         i, j = random.sample(range(1, len(route)), 2)  # Avoid mutating start location
         route[i], route[j] = route[j], route[i]
 
+
 # Genetic algorithm with termination based on distance threshold
 def genetic_algorithm(locations, distance_threshold, population_size, elitism_rate, tournament_size, max_generations, mutation_rate):
     distance_matrix = create_distance_matrix(locations)
@@ -117,10 +118,12 @@ def genetic_algorithm(locations, distance_threshold, population_size, elitism_ra
             if dist < best_distance:
                 best_distance = dist
                 best_route = route
+                print(f"Generation {generation}: New best route found with distance {best_distance:.2f}")
 
         generation += 1
 
     return best_route, best_distance, distance_matrix
+
 
 # Plot the route
 def plot_route(locations, route):
@@ -154,8 +157,8 @@ print(f"All locations: {locations}")
 # Model parameters
 distance_threshold = 8000
 population_size = 500
-elitism_rate = 0.4
-mutation_rate = 0.2
+elitism_rate = 0.1
+mutation_rate = 0.4
 tournament_size = 8
 max_generations = 1000  # Fallback to avoid infinite loop
 
