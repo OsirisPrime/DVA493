@@ -17,7 +17,7 @@ def import_file():
     # Take the first 19 attributes as training data
     patient_data = np.array([attribute[0:19] for attribute in patient_attr], dtype=float)
 
-    # Take the last attribute as training result
+    # Take the last attribute as target result
     patient_result = np.array([attribute[-1] for attribute in patient_attr], dtype=float)
 
     return patient_data, patient_result
@@ -143,14 +143,14 @@ class NeuralNetwork:
         # Calculate the accuracy
         correct_predictions = np.sum(predicted_classes == actual_classes)
         accuracy = correct_predictions / len(test_result)
-        print(f"Validation Accuracy: {accuracy:.4f}")
+        print(f"Accuracy: {accuracy:.4f}")
 
 #---------------------------------------------------------------------------------------#
 
 # Load data
 patient_data, patient_result = import_file()
 
-# Define network structure
+# Define network structure sizes
 input_size = 19
 hidden_size = 6
 output_size = 1
@@ -163,7 +163,7 @@ patient_data = scaler.fit_transform(patient_data)
 
 # Split the data into training, validation and testing set
 split_idx1 = int(0.75 * len(patient_data))
-split_idx2 = int(0.875 * len(patient_data))
+split_idx2 = int(0.85 * len(patient_data))
 
 training_data_set = patient_data[:split_idx1]
 training_result_set = patient_result[:split_idx1]
