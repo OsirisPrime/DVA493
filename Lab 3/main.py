@@ -38,9 +38,6 @@ eigenvectors = eigenvectors[:, sorted_indices]
 # Project data onto principal components
 principal_components = features_scaled @ eigenvectors
 
-# Save the PCA coefficient matrix
-np.savetxt("manual_pca_coefficients.txt", eigenvectors)
-
 # Step 5: Implement K-means algorithm
 def k_means_clustering(X, n_clusters, max_iter=300):
     rng = np.random.default_rng()
@@ -66,7 +63,6 @@ plt.xlabel("Principal Component 1")
 plt.ylabel("Principal Component 2")
 plt.title("PCA (Manual): Clusters with First Two Principal Components")
 plt.legend()
-plt.savefig("PCA_clusters_2_components.png")
 plt.show()
 
 # Function to visualize higher principal components with clusters
@@ -84,7 +80,6 @@ def visualize_higher_pcs_with_clusters(principal_components, clusters, num_pcs, 
         axes[i].set_title(f"Scatter Plot: PC{x_idx + 1} vs PC{y_idx + 1}")
         axes[i].legend()
     plt.tight_layout()
-    plt.savefig(filename)
     plt.show()
 
 # Run K-means clustering on the top 5 and 8 principal components
