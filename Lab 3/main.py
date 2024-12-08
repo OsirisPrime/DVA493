@@ -21,7 +21,7 @@ def calculate_PCA(features):
     np.savetxt("manual_pca_coefficients.txt", eigenvectors)  # Save the PCA coefficient matrix
 
     # Project data onto principal components
-    principal_components = features @ eigenvectors
+    principal_components = np.dot(features, eigenvectors)
 
     # Calculate variance ratio
     total_variance = np.sum(eigenvalues)
