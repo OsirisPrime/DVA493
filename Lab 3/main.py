@@ -21,7 +21,7 @@ def calculate_PCA(features):
     np.savetxt("pca_coefficients.txt", eigenvectors)  # Save the PCA coefficient matrix
 
     # Project data onto principal components
-    principal_components = np.dot(features, eigenvectors)
+    principal_components = np.dot(features, eigenvectors) #* -1 # times -1 if need to flip
 
     # Calculate variance ratio
     total_variance = np.sum(eigenvalues)
@@ -117,14 +117,6 @@ principal_components = calculate_PCA(features_scaled)
 clusters_2, centroids_2 = k_means_clustering(principal_components[:, :2], 3)
 clusters_5, centroids_5 = k_means_clustering(principal_components[:, :5], 3)
 clusters_8, centroids_8 = k_means_clustering(principal_components[:, :8], 3)
-
-# If need to flip the graph
-"""
-principal_components[:, 0] *= -1
-principal_components[:, 1] *= -1
-centroids_2[:, 0] *= -1
-centroids_2[:, 1] *= -1
-"""
 
 # Visualize the objects using the top 2 PC
 plot_PC_2(principal_components, clusters_2, centroids_2)
