@@ -18,7 +18,7 @@ def calculate_PCA(features):
     sorted_indices = np.argsort(eigenvalues)[::-1]
     eigenvalues = eigenvalues[sorted_indices]
     eigenvectors = eigenvectors[:, sorted_indices]
-    np.savetxt("manual_pca_coefficients.txt", eigenvectors)  # Save the PCA coefficient matrix
+    np.savetxt("pca_coefficients.txt", eigenvectors)  # Save the PCA coefficient matrix
 
     # Project data onto principal components
     principal_components = np.dot(features, eigenvectors)
