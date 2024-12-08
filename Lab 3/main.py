@@ -46,7 +46,6 @@ def k_means_clustering(X, n_clusters, max_iter=300):
 def plot_variance(variance_ratio):
     plt.figure(figsize=(10, 6))
     plt.bar(range(1, len(variance_ratio) + 1), variance_ratio, color='orange', alpha=0.7)
-    plt.scatter(range(1, len(variance_ratio) + 1), variance_ratio, color='orange', zorder=5)
     plt.title("Variance Ratio of Principal Components", fontsize=14)
     plt.xlabel("Principal Components", fontsize=12)
     plt.ylabel("Variance Ratio", fontsize=12)
@@ -65,7 +64,7 @@ def plot_PC_2(principal_components, clusters, centroids):
     plt.scatter(centroids[:, 0], centroids[:, 1], color="black", marker="x", s=200, label="Centroids")
     plt.xlabel("Principal Component 1")
     plt.ylabel("Principal Component 2")
-    plt.title("PCA (Manual): Clusters with First Two Principal Components")
+    plt.title("PCA: Clusters with First Two Principal Components")
     plt.legend()
     plt.savefig("PCA_clusters_2_components.png")
     plt.show()
