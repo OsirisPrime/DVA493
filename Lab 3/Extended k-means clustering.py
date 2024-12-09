@@ -1,8 +1,7 @@
 def k_means_clustering(X, n_clusters, max_iter=300):
     # Random initialization of centroids
     rng = np.random.default_rng()
-    centroids = X[
-        rng.choice(X.shape[0], n_clusters, replace=False)]  # Randomly select n_clusters points as initial centroids
+    centroids = X[rng.choice(X.shape[0], n_clusters, replace=False)]  # Randomly select n_clusters points as initial centroids
 
     for iteration in range(max_iter):
         # Step 1: Assign points to the nearest centroid
