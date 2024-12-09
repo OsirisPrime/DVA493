@@ -34,10 +34,11 @@ def calculate_PCA(features):
 def k_means_clustering(X, n_clusters, max_iter=300):
     rng = np.random.default_rng()
     centroids = X[rng.choice(X.shape[0], n_clusters, replace=False)]  # Random initialization
+
     for i in range(max_iter):
         clusters = pairwise_distances_argmin(X, centroids)  # Assign points to the nearest centroid
-        new_centroids = np.array([X[clusters == k].mean(axis=0) for k in range(n_clusters)])
-        if np.all(centroids == new_centroids):
+        new_centroids = np.array([X[clusters == k].mean(axis=0) for k in range(n_clusters)]) # Take the mean of all the points in each clusters
+        if np.all(centroids == new_centroids): # If the centroids converges (don't move), stop
             break
         centroids = new_centroids
     return clusters, centroids
@@ -70,6 +71,7 @@ def plot_PC_2(principal_components, clusters, centroids):
     plt.show()
 
 def store_data(clusters_2, clusters_5, clusters_8, centroids_2, centroids_5, centroids_8):
+    # Count how many points there are in each clusters
     count_2 = np.bincount(clusters_2)
     count_5 = np.bincount(clusters_5)
     count_8 = np.bincount(clusters_8)
@@ -113,7 +115,7 @@ features_scaled = scaler.fit_transform(features)
 # PCA Calculation
 principal_components = calculate_PCA(features_scaled)
 
-# Run K-means clustering on the top 2 principal components
+# Run K-means clustering on the top 2, 5 and 8 principal components
 clusters_2, centroids_2 = k_means_clustering(principal_components[:, :2], 3)
 clusters_5, centroids_5 = k_means_clustering(principal_components[:, :5], 3)
 clusters_8, centroids_8 = k_means_clustering(principal_components[:, :8], 3)
