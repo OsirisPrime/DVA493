@@ -1,0 +1,49 @@
+Shortest distances to F:
+A: 5
+B: 3
+C: 5
+D: 8
+E: 7
+F: 0
+G: 9
+H: 9
+I: 13
+J: 4
+K: 10
+L: 2
+M: 7
+N: 6
+O: 7
+P: 8
+R: 3
+S: 7
+V: 9
+W: 6
+X: 6
+Y: 1
+Z: 8
+
+Shortest paths to F:
+Path from A to F: A -> B -> F
+Path from B to F: B -> F
+Path from C to F: C -> B -> F
+Path from D to F: D -> B -> F
+Path from E to F: E -> A -> B -> F
+Path from F to F: F
+Path from G to F: G -> J -> L -> F
+Path from H to F: H -> P -> O -> J -> L -> F
+Path from I to F: I -> H -> P -> O -> J -> L -> F
+Path from J to F: J -> L -> F
+Path from K to F: K -> E -> A -> B -> F
+Path from L to F: L -> F
+Path from M to F: M -> F
+Path from N to F: N -> L -> F
+Path from O to F: O -> J -> L -> F
+Path from P to F: P -> O -> J -> L -> F
+Path from R to F: R -> F
+Path from S to F: S -> R -> F
+Path from V to F: V -> S -> R -> F
+Path from W to F: W -> A -> B -> F
+Path from X to F: X -> Y -> F
+Path from Y to F: Y -> F
+Path from Z to F: Z -> X -> Y -> F
