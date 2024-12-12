@@ -2,12 +2,12 @@ import heapq
 from collections import defaultdict
 
 "Reads the city data from the input file and constructs the graph."
-def read_city_data():
+def import_city_data():
     graph = defaultdict(list)
     with open('city 1.txt', 'r') as file:
         lines = file.readlines()
-        # Skip the headers
         start_parsing = False
+
         for line in lines:
             line = line.strip()
             if line == "LOCATIONS AND DISTANCES:":
@@ -17,28 +17,28 @@ def read_city_data():
             if start_parsing and line:
                 location1, location2, distance = line.split()
                 distance = int(distance)
-                # Add the edge to the graph (bidirectional)
                 graph[location1].append((location2, distance))
                 graph[location2].append((location1, distance))
     return graph
 
-"Calculates the shortest path to the destination from all other cities using Dijkstra's algorithm."
+"Calculates the shortest path using Dijkstra's algorithm."
 def dijkstra(graph, destination):
     pq = [(0, destination)]  # Priority queue (distance, city)
-    distances = {destination: 0}
-    previous_nodes = {destination: None}
+    distances = {destination: 0} # Dictionary to store the shortest distance to each city
+    previous_nodes = {destination: None} # Dictionary to track the path
 
     while pq:
-        current_distance, current_city = heapq.heappop(pq)
+        current_distance, current_city = heapq.heappop(pq) # Get city with the smallest distance
 
+        # Explore neighbors of the current city
         for neighbor, weight in graph[current_city]:
-            distance = current_distance + weight
+            distance = current_distance + weight # Calculate distance to neighbor
 
             # If a shorter path is found
             if neighbor not in distances or distance < distances[neighbor]:
                 distances[neighbor] = distance
                 previous_nodes[neighbor] = current_city
-                heapq.heappush(pq, (distance, neighbor))
+                heapq.heappush(pq, (distance, neighbor)) # Add the neighbor to the queue
 
     return distances, previous_nodes
 
@@ -56,7 +56,7 @@ def reconstruct_path(previous_nodes, start):
 destination = 'F'
 
 # Read the graph from the file
-graph = read_city_data()
+graph = import_city_data()
 
 # Find the shortest distances and paths
 distances, previous_nodes = dijkstra(graph, destination)
