@@ -43,7 +43,7 @@ def dijkstra(graph, destination):
     return distances, previous_nodes
 
 "Reconstructs the path from start to destination using the previous nodes dictionary"
-def reconstruct_path(previous_nodes, start):
+def shortest_path(previous_nodes, start):
     path = []
     current = start
     while current is not None:
@@ -68,7 +68,7 @@ for city, distance in sorted(distances.items()):
 
 print("\nShortest paths to F:")
 for city in sorted(distances.keys()):
-    path = reconstruct_path(previous_nodes, city)
+    path = shortest_path(previous_nodes, city)
     print(f"Path from {city} to {destination}: {' -> '.join(path)}")
 
 
