@@ -66,7 +66,7 @@ print(f"Shortest distances to {destination}:")
 for city, distance in sorted(distances.items()):
     print(f"{city}: {distance}")
 
-print("\nShortest paths to F:")
+print(f"\nShortest paths to {destination}:")
 for city in sorted(distances.keys()):
     path = shortest_path(previous_nodes, city)
     print(f"Path from {city} to {destination}: {' -> '.join(path)}")
