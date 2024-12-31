@@ -1,3 +1,4 @@
+Training the agent:
 Episode 100/1500, epsilon: 0.606
 Episode 200/1500, epsilon: 0.367
 Episode 300/1500, epsilon: 0.222
