@@ -66,6 +66,7 @@ def train_agent():
     # Initialize Q-table and visit count
     Q = {}  # Q-value table
     visit_count = {}  # Visit count for state-action pairs
+    print("Training the agent: ")
 
     for episode in range(episodes):
         # Initialize state
@@ -73,7 +74,7 @@ def train_agent():
         state = discretize(x, x_dot, theta, theta_dot)
 
         # Episode loop
-        for t in range(500):  # Limit the number of steps
+        for t in range(1000):  # Limit the number of steps
             # Epsilon-greedy action selection
             if random.random() < epsilon:
                 action = random.choice(actions)  # Explore
