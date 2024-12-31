@@ -43,7 +43,7 @@ def discretize(x, x_dot, theta, theta_dot):
     theta_discrete = np.digitize(theta, theta_bins)
     theta_dot_discrete = np.digitize(theta_dot, theta_dot_bins)
 
-    return (x_discrete, x_dot_discrete, theta_discrete, theta_dot_discrete)
+    return x_discrete, x_dot_discrete, theta_discrete, theta_dot_discrete
 
 
 # Reward function
@@ -124,7 +124,7 @@ def test_agent(Q):
 
     print("\nTesting the agent: ")
 
-    for t in range(500):  # Limit steps
+    for t in range(1000):  # Limit steps
         action = max([-10, 10], key=lambda a: Q.get((state, a), 0))
         x, x_dot, theta, theta_dot = simulate(action, x, x_dot, theta, theta_dot)
         state = discretize(x, x_dot, theta, theta_dot)
