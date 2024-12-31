@@ -8,7 +8,7 @@ def simulate(force, x, x_dot, theta, theta_dot):
     MASSCART = 1.0
     MASPOLE = 0.1
     TOTAL_MASS = MASPOLE + MASSCART
-    LENGTH = 0.5  # Half the pole length
+    LENGTH = 0.5
     POLEMASS_LENGTH = MASPOLE * LENGTH
     STEP = 0.02
     FOURTHIRDS = 4.0 / 3.0
