@@ -32,10 +32,10 @@ def simulate(force, x, x_dot, theta, theta_dot):
 # Discretize state space
 def discretize(x, x_dot, theta, theta_dot):
     # Define discretization bins for each variable
-    x_bins = np.linspace(-2.4, 2.4, 10)
-    x_dot_bins = np.linspace(-2.0, 2.0, 10)
-    theta_bins = np.linspace(-12 * math.pi / 180, 12 * math.pi / 180, 10)
-    theta_dot_bins = np.linspace(-2.0, 2.0, 10)
+    x_bins = np.linspace(-2.4, 2.4, 5)
+    x_dot_bins = np.linspace(-2.0, 2.0, 5)
+    theta_bins = np.linspace(-12 * math.pi / 180, 12 * math.pi / 180, 5)
+    theta_dot_bins = np.linspace(-2.0, 2.0, 5)
 
     # Discretize each variable
     x_discrete = np.digitize(x, x_bins)
@@ -50,18 +50,18 @@ def discretize(x, x_dot, theta, theta_dot):
 def reward(x, theta):
     if abs(x) > 2.4 or abs(theta) > 12 * math.pi / 180:
         return -1  # Failure
-    return 0  # Survival
+    return 0 # Survival
 
 
 # Reinforcement learning with Q-learning
 def train_agent():
     # Parameters
-    actions = [-10, 10]  # Left and right forces
+    actions = [-10, 0, 10]  # Left and right forces
     gamma = 0.99  # Discount factor
     epsilon = 1.0  # Initial exploration rate
-    epsilon_decay = 0.995
+    epsilon_decay = 0.999
     epsilon_min = 0.01
-    episodes = 1500
+    episodes = 5000
 
     # Initialize Q-table and visit count
     Q = {}  # Q-value table
@@ -74,7 +74,7 @@ def train_agent():
         state = discretize(x, x_dot, theta, theta_dot)
 
         # Episode loop
-        for t in range(1000):  # Limit the number of steps
+        for t in range(10000):  # Limit the number of steps
             # Epsilon-greedy action selection
             if random.random() < epsilon:
                 action = random.choice(actions)  # Explore
@@ -125,8 +125,8 @@ def test_agent(Q):
 
     print("\nTesting the agent: ")
 
-    for t in range(1000):  # Limit steps
-        action = max([-10, 10], key=lambda a: Q.get((state, a), 0))
+    for t in range(10000):  # Limit steps
+        action = max([-10, 0, 10], key=lambda a: Q.get((state, a), 0))
         x, x_dot, theta, theta_dot = simulate(action, x, x_dot, theta, theta_dot)
         state = discretize(x, x_dot, theta, theta_dot)
 
