@@ -1,6 +1,9 @@
 import math
 import random
 import numpy as np
+import matplotlib.pyplot as plt
+
+actions = [-10, 10]
 
 # Simulate function (from the earlier implementation)
 def simulate(force, x, x_dot, theta, theta_dot):
@@ -11,7 +14,7 @@ def simulate(force, x, x_dot, theta, theta_dot):
     LENGTH = 0.5
     POLEMASS_LENGTH = MASPOLE * LENGTH
     STEP = 0.02
-    FOURTHIRDS = 4.0 / 3.0
+    FOURTHIRDS = 1.3333333333333 #4.0 / 3.0
 
     costheta = math.cos(theta)
     sintheta = math.sin(theta)
@@ -33,7 +36,7 @@ def simulate(force, x, x_dot, theta, theta_dot):
 def discretize(x, x_dot, theta, theta_dot):
     # Define discretization bins for each variable
     x_bins = np.linspace(-2.4, 2.4, 5)
-    x_dot_bins = np.linspace(-2.0, 2.0, 5)
+    x_dot_bins = np.linspace(-3.0, 3.0, 5)
     theta_bins = np.linspace(-12 * math.pi / 180, 12 * math.pi / 180, 5)
     theta_dot_bins = np.linspace(-2.0, 2.0, 5)
 
@@ -50,18 +53,17 @@ def discretize(x, x_dot, theta, theta_dot):
 def reward(x, theta):
     if abs(x) > 2.4 or abs(theta) > 12 * math.pi / 180:
         return -1  # Failure
-    return 0 # Survival
+    return 1 # Survival
 
 
 # Reinforcement learning with Q-learning
 def train_agent():
     # Parameters
-    actions = [-10, 0, 10]  # Left and right forces
     gamma = 0.99  # Discount factor
     epsilon = 1.0  # Initial exploration rate
-    epsilon_decay = 0.999
+    epsilon_decay = 0.995
     epsilon_min = 0.01
-    episodes = 5000
+    episodes = 1500
 
     # Initialize Q-table and visit count
     Q = {}  # Q-value table
@@ -74,7 +76,7 @@ def train_agent():
         state = discretize(x, x_dot, theta, theta_dot)
 
         # Episode loop
-        for t in range(10000):  # Limit the number of steps
+        for t in range(3000):  # Limit the number of steps
             # Epsilon-greedy action selection
             if random.random() < epsilon:
                 action = random.choice(actions)  # Explore
@@ -122,25 +124,53 @@ def train_agent():
 def test_agent(Q):
     x, x_dot, theta, theta_dot = 0, 0, 0, 0
     state = discretize(x, x_dot, theta, theta_dot)
+    positions = []
+    angles = []
 
     print("\nTesting the agent: ")
 
-    for t in range(10000):  # Limit steps
-        action = max([-10, 0, 10], key=lambda a: Q.get((state, a), 0))
+    for t in range(3000):  # Limit steps
+        action = max(actions, key=lambda a: Q.get((state, a), 0))
         x, x_dot, theta, theta_dot = simulate(action, x, x_dot, theta, theta_dot)
         state = discretize(x, x_dot, theta, theta_dot)
 
-        print(f"Step {t}: x={x:.2f}, theta={theta:.2f}")
+        positions.append(x)
+        angles.append(theta * 180 / math.pi)
+
+        print(f"Step {t}: x={x:.2f}, theta={theta * 180 / math.pi:.2f}")
         if abs(x) > 2.4 or abs(theta) > 12 * math.pi / 180:
-            print("System failed!")
+            print("\nSystem failed!")
             break
     else:
-        print("System survived!")
+        print("\nSystem survived!")
+
+    # Plotting results
+    fig, axes = plt.subplots(2, 1, figsize=(10, 10))  # Two rows, one column
+
+    # Plot position (x)
+    axes[0].plot(positions, label="Position (x)")
+    axes[0].set_ylim(-2.4, 2.4)
+    axes[0].set_xlabel("Steps")
+    axes[0].set_ylabel("Position (x)")
+    axes[0].set_title("Position (x) over Time")
+    axes[0].legend()
+    axes[0].grid()
+
+    # Plot angle (theta)
+    axes[1].plot(angles, label="Angle (theta)", color="orange")
+    axes[1].set_ylim(-12, 12)
+    axes[1].set_xlabel("Steps")
+    axes[1].set_ylabel("Angle (theta) [degree]")
+    axes[1].set_title("Angle (theta) over Time")
+    axes[1].legend()
+    axes[1].grid()
+
+    # Adjust layout and show plots
+    plt.tight_layout()
+    plt.show()
 
 #---------------------------------------------------------------------------#
 
 Q_table = train_agent()
 
 test_agent(Q_table)
-
-
