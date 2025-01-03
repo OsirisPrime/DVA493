@@ -2,16 +2,17 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 
-# Constants
-g = -9.8  # acceleration due to gravity (m/s^2)
-mc = 1.0  # mass of the cart (kg)
-m = 0.1  # mass of the pole (kg)
-l = 0.5  # half of the pole length (m)
 force_values = [-10, 10]  # forces to apply (N)
-dt = 0.02  # time interval (s)
 
 def simulate_pendulum(state, force):
     x, x_dot, theta, theta_dot = state
+
+    # Constants
+    g = -9.8  # acceleration due to gravity (m/s^2)
+    mc = 1.0  # mass of the cart (kg)
+    m = 0.1  # mass of the pole (kg)
+    l = 0.5  # half of the pole length (m)
+    dt = 0.02  # time interval (s)
 
     sin_theta = np.sin(theta)
     cos_theta = np.cos(theta)
@@ -48,12 +49,6 @@ def discretize_state(state):
 
     return tuple(indices)
 
-def choose_action(state, q_table, epsilon):
-    if random.random() < epsilon:
-        return random.choice([0, 1])  # Explore
-    else:
-        return np.argmax(q_table[state])  # Exploit
-
 # Reward function
 def reward_function(state):
     x, _, theta, _ = state
@@ -87,7 +82,11 @@ def train_model():
         alpha = max(min_alpha, initial_alpha * (0.85 ** (episode // 100)))
 
         for step in range(max_steps):
-            action = choose_action(discretized_state, q_table, epsilon)
+            if random.random() < epsilon:
+                action = random.choice([0, 1])  # Explore
+            else:
+                action = np.argmax(q_table[discretized_state])  # Exploit
+
             force = force_values[action]
 
             next_state = simulate_pendulum(state, force)
@@ -138,35 +137,33 @@ def test_model(q_table):
     else:
         print("Test passed: System survived 3000 steps.")
 
-    # Plot the results
-    plt.figure(figsize=(12, 5))
+    # Plotting results
+    fig, axes = plt.subplots(2, 1, figsize=(10, 10))  # Two rows, one column
 
-    # Plot position
-    plt.subplot(1, 2, 1)
-    plt.plot(positions, label="Position (x)")
-    plt.ylim(-2.4, 2.4)
-    plt.xlabel("Steps")
-    plt.ylabel("Position (m)")
-    plt.title("Cart Position Over Time")
-    plt.grid()
-    plt.legend()
+    # Plot position (x)
+    axes[0].plot(positions, label="Position (x)")
+    axes[0].set_ylim(-2.4, 2.4)
+    axes[0].set_xlabel("Steps")
+    axes[0].set_ylabel("Position (x)")
+    axes[0].set_title("Position (x) over Time")
+    axes[0].legend()
+    axes[0].grid()
 
-    # Plot angle
-    plt.subplot(1, 2, 2)
-    plt.plot(angles, label="Angle (theta)")
-    plt.ylim(-12, 12)
-    plt.xlabel("Steps")
-    plt.ylabel("Angle (degrees)")
-    plt.title("Pole Angle Over Time")
-    plt.grid()
-    plt.legend()
+    # Plot angle (theta)
+    axes[1].plot(angles, label="Angle (theta)", color="orange")
+    axes[1].set_ylim(-12, 12)
+    axes[1].set_xlabel("Steps")
+    axes[1].set_ylabel("Angle (theta) [degree]")
+    axes[1].set_title("Angle (theta) over Time")
+    axes[1].legend()
+    axes[1].grid()
+
 
     plt.tight_layout()
     plt.show()
 
-def main():
-    q_table = train_model()
-    test_model(q_table)
+#--------------------------------------------------------------------------------#
 
-if __name__ == "__main__":
-    main()
+q_table = train_model()
+test_model(q_table)
+
